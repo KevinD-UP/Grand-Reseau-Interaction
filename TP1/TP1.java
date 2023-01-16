@@ -13,7 +13,7 @@ public class TP1 {
     private static Sommet[] nodes;
     private static int[] edges;
     private static int x;
-    private static boolean[] visited;
+    private static int maxDegree;
 
     public static void main(String[] args) {
         // Parsing du fichier
@@ -27,33 +27,15 @@ public class TP1 {
         }
 
         // Parcours en largeur
-        visited = new boolean[nodes.length];
         int[] bfsResult = bfs(x);
 
         // Affichage des resultats
         System.out.println(nodes.length);     // Sn -> taille du tableau des sommets / nombre de sommets
         System.out.println(edges.length);     // m -> nombre d'arrete (sans compter les doublons)
-        System.out.println(findMaxDegree());  // degre max -> le plus grand nombre de voisins
+        System.out.println(maxDegree);        // degre max -> le plus grand nombre de voisins
         System.out.println(bfsResult[0]);     // nombre de sommets accessibles depuis x (args[1])
         System.out.println(bfsResult[1]);     // excentricite de x -> longueur du plus long des chemins partant de x
         System.out.println(bfsResult[2]);     // nombre de composantes connexes
-    }
-
-    /**
-     * Trouve le degre maximal du graphe, c'est-a-dire le plus grand nombre de voisins pour un sommet.
-     *
-     * @return Le degre maximal du graphe.
-     */
-    public static int findMaxDegree() {
-        int max = 0;
-
-        for (Sommet s : nodes) {
-            if (s.getNeighboursCount() > max) {
-                max = s.getNeighboursCount();
-            }
-        }
-
-        return max;
     }
 
     /**
@@ -76,7 +58,7 @@ public class TP1 {
         int maxPathFromX = 0;
 
         // On marque le sommet de depart comme visite, et on l'ajoute a la queue
-        visited[x] = true;
+        nodes[x].markVisited();
         queue.add(nodes[x]);
 
         // Tant que la queue n'est pas vide
@@ -88,11 +70,11 @@ public class TP1 {
             for (int i = temp.getFirstNeighboursIndex(); i < temp.getFirstNeighboursIndex() + temp.getNeighboursCount(); i++) {
                 int id = edges[i];
                 // Si le sommet n'a pas ete visite
-                if (!visited[id]) {
+                if (!nodes[id].getVisited()) {
                     // On incremente le compteur du nombre de sommet accessibles depuis x
                     accessiblesFromXCount++;
                     // On marque le sommet comme visite
-                    visited[id] = true;
+                    nodes[id].markVisited();
                     // On ajoute le sommet a la queue pour qu'il soit traite
                     queue.add(nodes[id]);
                     // On incremente la distance du sommet par rapport au sommet de depart (temp)
@@ -109,7 +91,7 @@ public class TP1 {
         // On parcours chaque sommet et on verifie qu'il a ete marque pendant le parcours
         for (Sommet s : nodes) {
             // Si c'est pas le cas, on relance un parcours depuis ce sommet et on incremente le compteur
-            if (!visited[s.getId()]) {
+            if (!nodes[s.getId()].getVisited()) {
                 bfsCount += bfs(s.getId())[2];
             }
         }
@@ -207,6 +189,10 @@ public class TP1 {
                 translationHelper.put(data.getKey(), nodesIndex);
                 nodes[nodesIndex++] = s;
 
+                if(maxDegree < s.getNeighboursCount()) {
+                    maxDegree = s.getNeighboursCount();
+                }
+
                 for (Integer value : data.getValue()) {
                     edges[edgesIndex++] = value;
                 }
@@ -261,6 +247,8 @@ public class TP1 {
         private final int firstNeighboursIndex;
         // Le nombre de voisins
         private final int neighboursCount;
+        // Indique si le sommet a déjà été visité ou pas
+        private boolean visited;
 
         /**
          * Construit un sommet a partir de son numero et de son nom.
@@ -275,6 +263,7 @@ public class TP1 {
             this.name = name;
             this.firstNeighboursIndex = firstNeighboursIndex;
             this.neighboursCount = neighboursCount;
+            this.visited = false; // Par défaut, un sommet n'est pas visité
         }
 
         /**
@@ -311,6 +300,22 @@ public class TP1 {
          */
         public int getNeighboursCount() {
             return neighboursCount;
+        }
+
+        /**
+         * Getter pour l'attribut visited du sommet
+         *
+         * @return Un booleen indiquant si le sommet à déjà été visité
+         */
+        public boolean getVisited() {
+            return visited;
+        }
+
+        /**
+         * Setter pour l'attribut visited du sommet, marque le sommet comme visité
+         */
+        public void markVisited() {
+            this.visited = true;
         }
     }
 }
