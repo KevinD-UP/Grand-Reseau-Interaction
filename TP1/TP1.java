@@ -113,10 +113,12 @@ public class TP1 {
             for (Sommet s : nodes) {
                 if (s.getName() == x) {
                     x = s.getId();
+                    return true;
                 }
             }
 
-            return true;
+            printError("Invalid starting node provided: " + arg + " is not a valid node number.");
+            return false;
         } catch (NumberFormatException e) {
             printError("Invalid starting node provided: " + arg + " is not a number.");
             return false;
@@ -199,8 +201,8 @@ public class TP1 {
             }
 
             // Renommage des sommets dans la liste d'adjacence
-            for (int edge : edges) {
-                edge = translationHelper.get(edge);
+            for (int i = 0; i < edges.length; i++) {
+                edges[i] = translationHelper.get(edges[i]);
             }
 
             return true;

@@ -1,0 +1,72 @@
+$ /usr/bin/time -f"%e\n%M" java TP1 data/as20000102.txt 42
+-> fichier non symetrique -> programme fonctionne pas donc null pointer
+
+$ awk '/^[^#]/ {print $0"\n" $2 " " $1 }' data/as20000102.txt | sort -u -k 1n -k 2n > data/as20000102_sym.txt
+$ usr/bin/time -f"%e\n%M" java TP1 data/as20000102_sym.txt 42
+6474
+26467
+1459
+6474
+6
+1
+0.19 -> bon temps (0.01 en dessous du prof)
+67632 -> pas bonne memoire (12 440 au dessus du prof)
+
+$ sed -e 's/\r//' data/wiki-Vote.txt | sort -u -k 1n -k 2n > data/wiki-Vote_sorted.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 wiki-Vote_sorted.txt 42
+-> fichier non symetrique -> programme fonctionne pas donc null pointer
+
+$ sed -e 's/\r//' data/wiki-Vote.txt | awk '/^[^#]/ {print $0 "\n" $2 " " $1 }' | sort -u -k 1n -k 2n > data/wiki-Vote_sym.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 data/wiki-Vote_sym.txt 42
+7115
+201524
+1065
+7066
+5
+24
+0.41 ->  pas bon temps (0.11 au dessus du prof)
+127564 -> pas bonne memoire (55 908 au dessus du prof)
+
+$ sed -e 's/\r//' data/ca-AstroPh.txt | sort -u -k 1n -k 2n > data/ca-AstroPh_sorted.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 data/ca-AstroPh_sorted.txt 289
+18772
+396160
+504
+17903
+9
+290
+0.60 -> pas bon temps (0.17 au dessus du prof)
+246080 -> pas bonne memoire (146 388 au dessus du prof)
+
+$ sed -e 's/\r//' data/roadNet-CA.txt | awk '/^[^#]/ {print $0 "\n" $2 " " $1 }' | sort -u -k 1n -k 2n > data/roadNet-CA_sym.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 data/roadNet-CA_sym.txt 0
+1965206
+5533214
+12
+1957027
+554
+2638
+25.75 -> pas bon temps (23.59 au dessus du prof wtf)
+2088724 -> pas bonne memoire (1 440 800 au dessus du prof)
+
+$ sed -e 's/\r//' data/web-BerkStan.txt | awk '/^[^#]/ {print $0 "\n" $2 " " $1 }' | sort -u -k 1n -k 2n > data/web-BerkStan_sym.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 data/web-BerkStan_sym.txt 42
+685230
+13298940
+84230
+654782
+123
+676
+8.71 -> pas bon temps (5.41 au dessus du prof)
+1835408 -> pas bonne memoire (981 680 au dessus du prof)
+
+$ awk '/^[^#]/ {print $0 "\n" $2 " " $1 }' data/soc-pokec-relationships.txt | sort -u -k 1n -k 2n > data/soc-pokec-relationships_sym.txt
+$ /usr/bin/time -f"%e\n%M" java TP1 data/soc-pokec-relationships_sym.txt 1
+1632803
+44603928
+14854
+1632803
+9
+1
+31.04 -> bon temps (3.23 en dessous du prof)
+1864708 -> pas bonne memoire (940 580 au dessus du prof)
