@@ -1,3 +1,4 @@
-Notre programme ne fonctionne pas si le fichier d'entree n'est pas symetrique (le sujet evoque que nous travaillons avec des fichiers symetriques, mais certains exemples ne le font pas, donc nous le reindiquons au cas ou).
+Notre programme ne fonctionne pas si le fichier d'entrée n'est pas symétrique
+(le sujet évoque que nous travaillons avec des fichiers symétriques, mais certains exemples ne le font pas, donc nous le réindiquons au cas ou).
 
-Nous avons traite l'extension du renommage.
+Nous avons traité l'extension du renommage.

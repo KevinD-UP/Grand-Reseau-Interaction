@@ -9,7 +9,7 @@ public class TP1 {
     // Constantes
     private static final String COMMENT_START_TOKEN = "#";
 
-    // Donnees
+    // Données
     private static Sommet[] nodes;
     private static int[] edges;
     private static int x;
@@ -31,10 +31,10 @@ public class TP1 {
 
         // Affichage des resultats
         System.out.println(nodes.length);     // Sn -> taille du tableau des sommets / nombre de sommets
-        System.out.println(edges.length);     // m -> nombre d'arrete (sans compter les doublons)
-        System.out.println(maxDegree);        // degre max -> le plus grand nombre de voisins
+        System.out.println(edges.length);     // m -> nombre d'arête (sans compter les doublons)
+        System.out.println(maxDegree);        // degré max -> le plus grand nombre de voisins
         System.out.println(bfsResult[0]);     // nombre de sommets accessibles depuis x (args[1])
-        System.out.println(bfsResult[1]);     // excentricite de x -> longueur du plus long des chemins partant de x
+        System.out.println(bfsResult[1]);     // eccentricite de x -> longueur du plus long des chemins partant de x
         System.out.println(bfsResult[2]);     // nombre de composantes connexes
     }
 
@@ -44,40 +44,43 @@ public class TP1 {
      * - Taille du plus long chemin partant de x.
      * - Nombre de composantes connexes du graphe.
      * 
-     * @param x Le numero du sommet de depart.
-     * @return Un tableau de 3 cases contenant (dans l'ordre) les valeurs decrites precedemment.
+     * @param x Le numéro du sommet de départ.
+     * @return Un tableau de 3 cases contenant (dans l'ordre) les valeurs décrites précédemment.
      */
     public static int[] bfs(int x) {
         // Tableau des distances
         int[] distances = new int[nodes.length];
-        // Queue pour le parcours (contiendra la liste des sommets a visiter)
+
+        // Queue pour le parcours (contiendra la liste des sommets à visiter)
         Queue<Sommet> queue = new LinkedList<>();
+
         // Compteur du nombre de sommets accessibles depuis x
         int accessiblesFromXCount = 1;
+
         // Longueur du plus long chemin partant de x
         int maxPathFromX = 0;
 
-        // On marque le sommet de depart comme visite, et on l'ajoute a la queue
+        // On marque le sommet de départ comme visité, et on l'ajoute à la queue
         nodes[x].markVisited();
         queue.add(nodes[x]);
 
         // Tant que la queue n'est pas vide
         while (!queue.isEmpty()) {
-            // On recupere le dernier element de la queue (et on trouve le sommet correspondant)
+            // On récupère le dernier élément de la queue (et on trouve le sommet correspondant)
             Sommet temp = queue.poll();
 
             // Pour chacun de ses voisins
             for (int i = temp.getFirstNeighboursIndex(); i < temp.getFirstNeighboursIndex() + temp.getNeighboursCount(); i++) {
                 int id = edges[i];
-                // Si le sommet n'a pas ete visite
+                // Si le sommet n'a pas été visité
                 if (!nodes[id].getVisited()) {
                     // On incremente le compteur du nombre de sommet accessibles depuis x
                     accessiblesFromXCount++;
-                    // On marque le sommet comme visite
+                    // On marque le sommet comme visité
                     nodes[id].markVisited();
-                    // On ajoute le sommet a la queue pour qu'il soit traite
+                    // On ajoute le sommet a la queue pour qu'il soit traité
                     queue.add(nodes[id]);
-                    // On incremente la distance du sommet par rapport au sommet de depart (temp)
+                    // On incrémente la distance du sommet par rapport au sommet de départ (temp)
                     distances[id] = 1 + distances[temp.getId()];
                     // On met a jour la taille du plus long chemin si besoin
                     maxPathFromX = Math.max(maxPathFromX, distances[id]);
@@ -88,9 +91,9 @@ public class TP1 {
         // Compteur des composantes connexes
         int bfsCount = 1;
 
-        // On parcours chaque sommet et on verifie qu'il a ete marque pendant le parcours
+        // On parcourt chaque sommet et on vérifie qu'il a été marqué pendant le parcours
         for (Sommet s : nodes) {
-            // Si c'est pas le cas, on relance un parcours depuis ce sommet et on incremente le compteur
+            // Si ce n'est pas le cas, on relance un parcours depuis ce sommet et on incrémente le compteur
             if (!nodes[s.getId()].getVisited()) {
                 bfsCount += bfs(s.getId())[2];
             }
@@ -101,10 +104,10 @@ public class TP1 {
     }
 
     /**
-     * Parse le numero du sommet de depart et le stocke dans la variable globale "x".
+     * Parse le numéro du sommet de départ et le stocke dans la variable globale "x".
      *
      * @param arg L'argument fourni.
-     * @return true si l'argument a ete parse correctement, false sinon.
+     * @return true si l'argument a été parsé correctement, false sinon.
      */
     public static boolean parseX(String arg) {
         try {
@@ -126,16 +129,16 @@ public class TP1 {
     }
 
     /**
-     * Parse le fichier et stocke les donnees dans les tableaux globaux (edges et nodes).
-     * Effectue egalelement une traduction des numeros des sommets du graphe.
+     * Parse le fichier et stocke les données dans les tableaux globaux (edges et nodes).
+     * Effectue également une traduction des numéros des sommets du graphe.
      *
      * @param pathToFile Le chemin d'acces au fichier a parser.
-     * @return true si le parsing c'est bien passe, false sinon.
+     * @return true si le parsing s'est bien passe, false sinon.
      */
     public static boolean parseFile(String pathToFile) {
-        // On va stocker les donnees dans un dictionnaire avec :
-        // cle = numero de sommet
-        // valeur = liste des sommets auquel le sommet cle est lie
+        // On va stocker les données dans un dictionnaire avec :
+        // clé = numéro de sommet
+        // valeur = liste des sommets auquel le sommet clé est lié
         HashMap<Integer, ArrayList<Integer>> buffer = new HashMap<>();
         int totalDataLines = 0;
         int totalLines = 0;
@@ -156,11 +159,11 @@ public class TP1 {
                 // Recuperation des tokens de la ligne
                 String[] tokens = currentLine.split("\\s");
 
-                // Convertion des tokens en nombres
+                // Conversion des tokens en nombres
                 int first = Integer.parseInt(tokens[0]);
                 int second = Integer.parseInt(tokens[1]);
 
-                // Stockage des donnees dans la map
+                // Stockage des données dans la map
                 if (buffer.containsKey(first)) {
                     buffer.get(first).add(second);
                 } else {
@@ -191,6 +194,7 @@ public class TP1 {
                 translationHelper.put(data.getKey(), nodesIndex);
                 nodes[nodesIndex++] = s;
 
+                // On garde ici dans maxDegree, le degré maximum
                 if(maxDegree < s.getNeighboursCount()) {
                     maxDegree = s.getNeighboursCount();
                 }
@@ -220,7 +224,7 @@ public class TP1 {
 
     /**
      * Affiche "ERREUR" sur la sortie standard.
-     * Peut egalement afficher des details sur l'erreur survenue.
+     * Peut également afficher des détails sur l'erreur survenue.
      *
      * @param details Les details de l'erreur (ou null si non-necessaire).
      */
@@ -237,11 +241,11 @@ public class TP1 {
     }
 
     /**
-     * Representation d'un sommet du graphe.
+     * Représentation d'un sommet du graphe.
      */
     private static class Sommet {
 
-        // Le numero du sommet
+        // Le numéro du sommet
         private final int id;
         // Le nom du sommet
         private final int name;
@@ -253,9 +257,9 @@ public class TP1 {
         private boolean visited;
 
         /**
-         * Construit un sommet a partir de son numero et de son nom.
+         * Construit un sommet à partir de son numéro et de son nom.
          *
-         * @param id Le numero du sommet.
+         * @param id Le numéro du sommet.
          * @param name Le nom du sommet.
          * @param firstNeighboursIndex L'indice du premier voisin dans la liste d'adjacence.
          * @param neighboursCount Le nombre de voisins.
@@ -269,9 +273,9 @@ public class TP1 {
         }
 
         /**
-         * Getter pour le numero du sommet.
+         * Getter pour le numéro du sommet.
          *
-         * @return Le numero du sommet.
+         * @return Le numéro du sommet.
          */
         public int getId() {
             return id;
