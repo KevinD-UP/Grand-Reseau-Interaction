@@ -3,6 +3,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TP1 {
 
@@ -141,7 +143,6 @@ public class TP1 {
         // valeur = liste des sommets auquel le sommet clé est lié
         HashMap<Integer, ArrayList<Integer>> buffer = new HashMap<>();
         int totalDataLines = 0;
-        int totalLines = 0;
         String currentLine;
 
         try {
@@ -156,8 +157,14 @@ public class TP1 {
 
                 totalDataLines++;
 
-                // Recuperation des tokens de la ligne
-                String[] tokens = currentLine.split("\\s");
+                // Récupération des tokens de la ligne
+                String[] tokens = {"", ""};
+                int tokenIndex = 0;
+
+                Matcher m = Pattern.compile("\\d+").matcher(currentLine);
+                while (m.find()){
+                    tokens[tokenIndex++] = m.group();
+                }
 
                 // Conversion des tokens en nombres
                 int first = Integer.parseInt(tokens[0]);
@@ -172,6 +179,9 @@ public class TP1 {
                     temp.add(second);
 
                     buffer.put(first, temp);
+                }
+                if (!buffer.containsKey(second)) {
+                    buffer.put(second, new ArrayList<>());
                 }
             }
 
@@ -214,7 +224,7 @@ public class TP1 {
             printError("Provided file does not exist (" + pathToFile + ").");
             return false;
         } catch (NumberFormatException e) {
-            printError("Invalid node number at line " + totalLines + ": not a number.");
+            printError("Invalid node number at line: not a number.");
             return false;
         } catch (IOException e) {
             printError("An unexpected error occurred during the file parsing: " + e.getMessage());
