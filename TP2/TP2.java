@@ -7,8 +7,8 @@ import java.util.*;
 public class TP2 {
 
     // Constantes
-    private static final String COMMENT_START_TOKEN = "#";
-    private static final String CARDIALITY_COMMAND  = "-c";
+    private static final String COMMENT_START_TOKEN            = "#";
+    private static final String CARDIALITY_COMMAND             = "-c";
     private static final String BETWEENNESS_CENTRALITY_COMMAND = "-b";
 
     // Données
@@ -46,6 +46,31 @@ public class TP2 {
         if (!xTranslated) {
             printError("Invalid starting node provided: " + x + " is not a valid node number.");
             return;
+        }
+    }
+
+    /**
+     * Parse le numéro du sommet de départ et le stocke dans la variable globale "x".
+     *
+     * @param arg L'argument fourni.
+     * @return true si l'argument a été parsé correctement, false sinon.
+     */
+    public static boolean parseX(String arg) {
+        try {
+            x = Integer.parseInt(arg);
+
+            for (Sommet s : nodes) {
+                if (s.getName() == x) {
+                    x = s.getId();
+                    return true;
+                }
+            }
+
+            printError("Invalid starting node provided: " + arg + " is not a valid node number.");
+            return false;
+        } catch (NumberFormatException e) {
+            printError("Invalid starting node provided: " + arg + " is not a number.");
+            return false;
         }
     }
 
@@ -289,8 +314,8 @@ public class TP2 {
          *
          * @return Un booleen indiquant si le sommet est present
          */
-        public boolean getVisited() {
-            return visited;
+        public boolean isPresent() {
+            return present;
         }
 
         /**
