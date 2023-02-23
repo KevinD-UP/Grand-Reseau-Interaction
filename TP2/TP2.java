@@ -3,6 +3,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TP2 {
 
@@ -15,15 +17,13 @@ public class TP2 {
     private static Sommet[] nodes;
     private static int[] edges;
     private static int x;
-    private static int maxDegree;
-    private static boolean xTranslated;
 
     public static void main(String[] args) {
-        if(args[0] == CARDIALITY_COMMAND){
-            //TODO: cardialité
+        if(args[0].equals(CARDIALITY_COMMAND)){
             completeParsing(args);
             // Affichage de la cardialité entrante pour le sommet x
-        } else if (args[0] == BETWEENNESS_CENTRALITY_COMMAND){
+            System.out.println(cardialiteEntrante(x));
+        } else if (args[0].equals(BETWEENNESS_CENTRALITY_COMMAND)){
             //TODO: betweenness
             completeParsing(args);
             // Affichage du betweenness centrality pour le sommet x
@@ -32,45 +32,88 @@ public class TP2 {
         }
     }
 
+    /**
+     * Calcule la cardialité entrante pour un sommet v
+     *
+     * @param v le sommet dont nous désirons la cardialité entrante.
+     * @return La cardialité entrante du sommet v.
+     */
+    private static int cardialiteEntrante(int v) {
+        int n = nodes.length;
+        int[] inDegree = new int[n]; // Tableau des degrés entrant pour chaque sommet.
+        boolean[] removed = new boolean[n]; // Tableau pour marquer les sommets retirés.
+        PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.comparingInt(i -> inDegree[i]));
+
+        // 1. Calculer le degré entrant de chaque sommet
+        for (int edge : edges) {
+            inDegree[edge]++;
+        }
+
+        // 2. Initialiser la file de priorité avec tous les sommets
+        for (int i = 0; i < n; i++) {
+            pq.offer(i);
+        }
+
+        // 3. Pour k de 0 à n
+        for (int k = 0; k < n; k++) {
+            // a. Tant qu’il existe un sommet x de degré entrant < k
+            while (!pq.isEmpty() && inDegree[pq.peek()] < k) {
+                int x = pq.poll();
+                removed[x] = true;
+
+                // b. décrémenter le degré entrant de tous ses voisins sortants
+                for (int j = nodes[x].getFirstNeighboursIndex(); j < nodes[x].getFirstNeighboursIndex() + nodes[x].getNeighboursCount(); j++) {
+                    int y = edges[j];
+                    if (!removed[y]) {
+                        inDegree[y]--;
+                        pq.remove(y);
+                        pq.offer(y);
+                    }
+                }
+
+                // c. Si on enlève v on s’arrête et on retourne k − 1
+                if (x == v) {
+                    return k - 1;
+                }
+            }
+        }
+
+        // Si v n’est pas enlevé, cela signifie qu'il est dans le n-coeur entrant
+        return n - 1;
+    }
+
+    /**
+     * Effectue le parsing des arguments de la commande et du fichier
+     *
+     * @param args tout les arguments de la commande.
+     */
     private static void completeParsing(String[] args) {
-        // Traduction du x
-        if (!parseX(args[2])) {
-            return;
-        }
-
         // Parsing du fichier
-        if (!parseFile(args[1])) {
-            return;
-        }
+        parseFile(args[1]);
 
-        if (!xTranslated) {
-            printError("Invalid starting node provided: " + x + " is not a valid node number.");
-            return;
-        }
+        // Traduction du x
+        parseX(args[2]);
     }
 
     /**
      * Parse le numéro du sommet de départ et le stocke dans la variable globale "x".
      *
      * @param arg L'argument fourni.
-     * @return true si l'argument a été parsé correctement, false sinon.
      */
-    public static boolean parseX(String arg) {
+    private static void parseX(String arg) {
         try {
             x = Integer.parseInt(arg);
 
             for (Sommet s : nodes) {
                 if (s.getName() == x) {
                     x = s.getId();
-                    return true;
+                    return;
                 }
             }
 
             printError("Invalid starting node provided: " + arg + " is not a valid node number.");
-            return false;
         } catch (NumberFormatException e) {
             printError("Invalid starting node provided: " + arg + " is not a number.");
-            return false;
         }
     }
 
@@ -78,18 +121,15 @@ public class TP2 {
      * Parse le fichier et stocke les données dans les tableaux globaux (edges et nodes).
      * Effectue également une traduction des numéros des sommets du graphe.
      *
-     * @param pathToFile Le chemin d'acces au fichier a parser.
-     * @return true si le parsing s'est bien passe, false sinon.
+     * @param pathToFile Le chemin d'accès au fichier à parser.
      */
-    public static boolean parseFile(String pathToFile) {
+    private static void parseFile(String pathToFile) {
         // On va stocker les données dans un dictionnaire avec :
         // clé = numéro de sommet
         // valeur = liste des sommets auquel le sommet clé est lié
         HashMap<Integer, ArrayList<Integer>> buffer = new HashMap<>();
-        HashMap<Integer, Integer> translationHelper = new HashMap<>();
         int totalDataLines = 0;
-        int nodesIndex = 0;
-        String currentLine;
+        String currentLine = "";
 
         try {
             // Initialisation du reader
@@ -101,24 +141,15 @@ public class TP2 {
                     continue;
                 }
 
-                // Incrémentation du nombre de ligne
                 totalDataLines++;
 
                 // Récupération des tokens de la ligne
-                char[] chars = currentLine.toCharArray();
                 String[] tokens = {"", ""};
-                int length = chars.length;
                 int tokenIndex = 0;
-                int index = 0;
 
-                while (index < length) {
-                    if (Character.isWhitespace(chars[index])) {
-                        tokenIndex = 1;
-                        index++;
-                        continue;
-                    }
-                    tokens[tokenIndex] += chars[index];
-                    index++;
+                Matcher m = Pattern.compile("\\d+").matcher(currentLine);
+                while (m.find()){
+                    tokens[tokenIndex++] = m.group();
                 }
 
                 // Conversion des tokens en nombres
@@ -134,31 +165,9 @@ public class TP2 {
                     temp.add(second);
 
                     buffer.put(first, temp);
-
-                    // Renommage du sommet
-                    translationHelper.put(first, nodesIndex);
-
-                    // Traduction du x (si pas encore fait)
-                    if (!xTranslated && x == first) {
-                        x = nodesIndex;
-                        xTranslated = true;
-                    }
-
-                    nodesIndex++;
                 }
                 if (!buffer.containsKey(second)) {
-                    buffer.put(first, new ArrayList<>());
-
-                    // Renommage du sommet
-                    translationHelper.put(second, nodesIndex);
-
-                    // Traduction du x (si pas encore fait)
-                    if (!xTranslated && x == first) {
-                        x = nodesIndex;
-                        xTranslated = true;
-                    }
-
-                    nodesIndex++;
+                    buffer.put(second, new ArrayList<>());
                 }
             }
 
@@ -166,40 +175,38 @@ public class TP2 {
             reader.close();
 
             // Initialisation des tableaux finaux
-            nodes = new Sommet[nodesIndex];
+            nodes = new Sommet[buffer.keySet().size()];
             edges = new int[totalDataLines];
 
             // Variables locales
+            HashMap<Integer, Integer> translationHelper = new HashMap<>();
+            int nodesIndex = 0;
             int edgesIndex = 0;
-            nodesIndex = 0;
 
             // Parcours des donnees pour le stockage dans les tableaux finaux
             for (Map.Entry<Integer, ArrayList<Integer>> data : buffer.entrySet()) {
                 Sommet s = new Sommet(nodesIndex, data.getKey(), edgesIndex, data.getValue().size());
 
+                translationHelper.put(data.getKey(), nodesIndex);
                 nodes[nodesIndex++] = s;
 
-                // On garde ici dans maxDegree, le degré maximum
-                if(maxDegree < s.getNeighboursCount()) {
-                    maxDegree = s.getNeighboursCount();
-                }
-
-                // Ajout des sommets dans la liste d'adjacence avec renommage
                 for (Integer value : data.getValue()) {
-                    edges[edgesIndex++] = translationHelper.get(value);
+                    edges[edgesIndex++] = value;
                 }
             }
 
-            return true;
+            // Renommage des sommets dans la liste d'adjacence
+            for (int i = 0; i < edges.length; i++) {
+                edges[i] = translationHelper.get(edges[i]);
+            }
         } catch (FileNotFoundException e) {
-            printError("Provided file does not exist (" + pathToFile + ").");
-            return false;
+            printError("Provided file does not exist (" + pathToFile + "). "  + e.getMessage());
         } catch (NumberFormatException e) {
-            printError("Invalid node number in the file.");
-            return false;
+            printError("Invalid node number at line: not a number. "  + e.getMessage());
         } catch (IOException e) {
             printError("An unexpected error occurred during the file parsing: " + e.getMessage());
-            return false;
+        } catch(IndexOutOfBoundsException e) {
+            printError(currentLine + " is incorrect (have more than two values)" + e.getMessage());
         }
     }
 
@@ -210,7 +217,7 @@ public class TP2 {
      *
      * @param details Les details de l'erreur (ou null si non-necessaire).
      */
-    public static void printError(String details) {
+    private static void printError(String details) {
         // Affichage de "ERREUR"
         System.out.print("ERREUR");
 
@@ -235,10 +242,6 @@ public class TP2 {
         private final int firstNeighboursIndex;
         // Le nombre de voisins
         private final int neighboursCount;
-        // Indique si le sommet a déjà été visité ou pas
-        private boolean visited;
-        // Indique si le sommet a été "enlevé" ou pas
-        private boolean present;
 
         /**
          * Construit un sommet à partir de son numéro et de son nom.
@@ -253,8 +256,6 @@ public class TP2 {
             this.name = name;
             this.firstNeighboursIndex = firstNeighboursIndex;
             this.neighboursCount = neighboursCount;
-            this.visited = false; // Par défaut, un sommet n'est pas visité
-            this.present = true; // Par défaut, le sommet "est présent" dans le graphe
         }
 
         /**
@@ -293,36 +294,5 @@ public class TP2 {
             return neighboursCount;
         }
 
-        /**
-         * Getter pour l'attribut visited du sommet
-         *
-         * @return Un booleen indiquant si le sommet à déjà été visité
-         */
-        public boolean getVisited() {
-            return visited;
-        }
-
-        /**
-         * Setter pour l'attribut visited du sommet, marque le sommet comme visité
-         */
-        public void markVisited() {
-            this.visited = true;
-        }
-
-        /**
-         * Getter pour l'attribut present du sommet
-         *
-         * @return Un booleen indiquant si le sommet est present
-         */
-        public boolean isPresent() {
-            return present;
-        }
-
-        /**
-         * Setter pour l'attribut present du sommet, "retire le sommet du graphe"
-         */
-        public void remove() {
-            this.present = false;
-        }
     }
 }
