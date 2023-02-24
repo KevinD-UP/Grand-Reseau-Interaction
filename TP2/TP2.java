@@ -16,17 +16,23 @@ public class TP2 {
     // Données
     private static Sommet[] nodes;
     private static int[] edges;
+    private static int n;
     private static int x;
 
     public static void main(String[] args) {
-        if(args[0].equals(CARDIALITY_COMMAND)){
-            completeParsing(args);
+        if (args[0].equals(CARDIALITY_COMMAND)) {
+            if (!completeParsing(args)) {
+                return;
+            }
             // Affichage de la cardialité entrante pour le sommet x
             System.out.println(cardialiteEntrante(x));
         } else if (args[0].equals(BETWEENNESS_CENTRALITY_COMMAND)){
-            //TODO: betweenness
-            completeParsing(args);
+            if (!completeParsing(args)) {
+                return;
+            }
+            n = nodes.length;
             // Affichage du betweenness centrality pour le sommet x
+            System.out.println(bet(x));
         } else {
             printError("Invalid option : " + args[0] + " doesn't exist, use -c or -b");
         }
@@ -83,37 +89,149 @@ public class TP2 {
     }
 
     /**
+     * Calcule la betweenness centrality d'un sommet v.
+     *
+     * @param v Le sommet v.
+     * @return La betweenness centrality du sommet v.
+     */
+    private static double bet(int v) {
+        // Lancement d'un npcc ayant pour origine v (car il ne sera jamais calculé par le bet)
+        int[][] dataV = npcc(v);
+        int[] npccFromV = dataV[0];
+        int[] distFromV = dataV[1];
+
+        double res = 0.0;
+
+        // Pour chaque sommet du graphe
+        for (Sommet s : nodes) {
+            var sId = s.getId();
+
+            // Si s == v on ignore
+            if (sId == v) {
+                continue;
+            }
+
+            // Lancement du BFS avec s pour origine
+            int[][] data = npcc(sId);
+            int[] npccFromS = data[0];
+            int[] distFromS = data[1];
+
+            // Pour chaque sommet du graphe
+            for (Sommet t : nodes) {
+                var tId = t.getId();
+
+                // Si t == v ou si s == t on ignore
+                if (tId == v || sId == tId) {
+                    continue;
+                }
+
+                if (npccFromS[tId] > 0) {
+                    if (distFromS[tId] == distFromS[v] + distFromV[tId]) {
+                        // On ajoute la centralité de v sur le trajet de s à t
+                        res += (1.0 * npccFromS[v] * npccFromV[tId]) / (npccFromS[tId] * 1.0);
+                    }
+                }
+            }
+        }
+
+        return (1.0 / ((n - 1) * (n - 2))) * res;
+    }
+
+    /**
+     * Calcule le nombre de plus courts chemins entre les sommets s et t.
+     *
+     * @param s Le sommet s.
+     * @return Le nombre de plus courts chemins entre les sommets s et t.
+     */
+    private static int[][] npcc(int s) {
+        int[] npcc = new int[n];
+        int[] dist = new int[n];
+
+        Arrays.fill(npcc, 0);
+        Arrays.fill(dist, Integer.MAX_VALUE);
+
+        // Liste des sommets visités pendant le parcours
+        boolean[] visited = new boolean[n];
+
+        // Queue pour le parcours (contiendra la liste des sommets à visiter)
+        Queue<Sommet> queue = new LinkedList<>();
+
+        // On marque le sommet de départ comme visité, et on l'ajoute à la queue
+        visited[s] = true;
+        queue.add(nodes[s]);
+
+        // On initialise la distance de s à lui-même et son nombre de plus court chemin
+        dist[s] = 0;
+        npcc[s] = 1;
+
+        // Tant que la queue n'est pas vide
+        while (!queue.isEmpty()) {
+            // On récupère le dernier élément de la queue (et on trouve le sommet correspondant)
+            Sommet temp = queue.poll();
+            int tempId = temp.getId();
+
+            // Pour chacun de ses voisins
+            for (int i = temp.getFirstNeighboursIndex(); i < temp.getFirstNeighboursIndex() + temp.getNeighboursCount(); i++) {
+                int id = edges[i];
+
+                // Si le voisin n'a pas été visité
+                if (!visited[id]) {
+                    // On marque le voisin comme visité
+                    visited[id] = true;
+                    // On ajoute le voisin à la queue pour qu'il soit traité
+                    queue.add(nodes[id]);
+                    // On incrémente la distance du voisin par rapport au sommet de départ (s)
+                    dist[id] = dist[tempId] + 1;
+                }
+
+                if (dist[tempId] < dist[id]) {
+                    // On incrémente le nombre de plus courts chemins
+                    npcc[id] += npcc[tempId];
+                }
+            }
+        }
+
+        return new int[][]{npcc, dist};
+    }
+
+    /**
      * Effectue le parsing des arguments de la commande et du fichier
      *
-     * @param args tout les arguments de la commande.
+     * @param args Tous les arguments de la commande.
+     * @return true si les arguments ont été parsés correctement, false sinon.
      */
-    private static void completeParsing(String[] args) {
+    private static boolean completeParsing(String[] args) {
         // Parsing du fichier
-        parseFile(args[1]);
+        if (!parseFile(args[1])) {
+            return false;
+        }
 
         // Traduction du x
-        parseX(args[2]);
+        return parseX(args[2]);
     }
 
     /**
      * Parse le numéro du sommet de départ et le stocke dans la variable globale "x".
      *
      * @param arg L'argument fourni.
+     * @return true si l'argument a été parsé correctement, false sinon.
      */
-    private static void parseX(String arg) {
+    private static boolean parseX(String arg) {
         try {
             x = Integer.parseInt(arg);
 
             for (Sommet s : nodes) {
                 if (s.getName() == x) {
                     x = s.getId();
-                    return;
+                    return true;
                 }
             }
 
             printError("Invalid starting node provided: " + arg + " is not a valid node number.");
+            return false;
         } catch (NumberFormatException e) {
             printError("Invalid starting node provided: " + arg + " is not a number.");
+            return false;
         }
     }
 
@@ -122,8 +240,9 @@ public class TP2 {
      * Effectue également une traduction des numéros des sommets du graphe.
      *
      * @param pathToFile Le chemin d'accès au fichier à parser.
+     * @return true si l'argument a été parsé correctement, false sinon.
      */
-    private static void parseFile(String pathToFile) {
+    private static boolean parseFile(String pathToFile) {
         // On va stocker les données dans un dictionnaire avec :
         // clé = numéro de sommet
         // valeur = liste des sommets auquel le sommet clé est lié
@@ -199,14 +318,20 @@ public class TP2 {
             for (int i = 0; i < edges.length; i++) {
                 edges[i] = translationHelper.get(edges[i]);
             }
+
+            return true;
         } catch (FileNotFoundException e) {
             printError("Provided file does not exist (" + pathToFile + "). "  + e.getMessage());
+            return false;
         } catch (NumberFormatException e) {
             printError("Invalid node number at line: not a number. "  + e.getMessage());
+            return false;
         } catch (IOException e) {
             printError("An unexpected error occurred during the file parsing: " + e.getMessage());
+            return false;
         } catch(IndexOutOfBoundsException e) {
             printError(currentLine + " is incorrect (have more than two values)" + e.getMessage());
+            return false;
         }
     }
 
