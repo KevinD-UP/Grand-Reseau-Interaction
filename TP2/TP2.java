@@ -14,10 +14,10 @@ public class TP2 {
     private static final String BETWEENNESS_CENTRALITY_COMMAND = "-b";
 
     // Données
-    private static Sommet[] nodes;
-    private static int[] edges;
-    private static int n;
-    private static int x;
+    private static Sommet[] nodes; // Tableau des sommets
+    private static int[] edges; // Tableau des arêtes
+    private static int n; // Nombre de sommet
+    private static int x; // Sommet considéré
 
     public static void main(String[] args) {
         if (args[0].equals(CARDIALITY_COMMAND)) {
@@ -138,10 +138,10 @@ public class TP2 {
     }
 
     /**
-     * Calcule le nombre de plus courts chemins entre les sommets s et t.
+     * Calcule le nombre de plus courts chemins entre le sommet s et tout les autres sommets.
      *
      * @param s Le sommet s.
-     * @return Le nombre de plus courts chemins entre les sommets s et t.
+     * @return Le nombre de plus courts chemins entre le sommet s et tout les autres sommets.
      */
     private static int[][] npcc(int s) {
         int[] npcc = new int[n];
