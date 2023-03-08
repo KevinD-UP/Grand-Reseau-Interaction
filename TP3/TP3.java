@@ -10,16 +10,15 @@ public class TP3 {
 
     public static void main(String[] args) {
         if (args[0].equals(WATTS_STROGATZ_COMMAND)) {
-            String outputTxt = args[1] + ".txt";
-            String outputDot = args[1] + ".dot";
+            String outputFilename = args[1];
             int n = Integer.parseInt(args[2]);
             int k = Integer.parseInt(args[3]);
             double p = Double.parseDouble(args[4]);
             int origine = Integer.parseInt(args[5]);
             int cible = Integer.parseInt(args[6]);
             int[][] graph = generateWattzStrogatzGraph(n, k, p);
-            writeGraphToFileTxt(graph, outputTxt);
-            writeGraphToFileDot(graph, outputDot);
+            writeGraphToFileTxt(graph, outputFilename);
+            writeGraphToFileDot(graph, outputFilename);
             int[] path = greedyRouting(graph, origine, cible);
             if (path != null) {
                 for (int node : path) {
@@ -115,7 +114,7 @@ public class TP3 {
 
     public static void writeGraphToFileTxt(int[][] graph, String filename) {
         try {
-            FileWriter writer = new FileWriter(filename);
+            FileWriter writer = new FileWriter(filename + ".txt");
             for (int i = 0; i < graph.length; i++) {
                 for (int j = 0; j < graph[i].length; j++) {
                     if (graph[i][j] == 1) {
@@ -131,7 +130,7 @@ public class TP3 {
 
     public static void writeGraphToFileDot(int[][] graph, String fileName) {
         try {
-            FileWriter writer = new FileWriter(fileName);
+            FileWriter writer = new FileWriter(fileName+".dot");
             writer.write("graph " + fileName + " {\n");
             for (int i = 0; i < graph.length; i++) {
                 for (int j = i + 1; j < graph.length; j++) {
