@@ -10,15 +10,23 @@ public class TP3 {
 
     public static void main(String[] args) {
         if (args[0].equals(WATTS_STROGATZ_COMMAND)) {
+
+            // Récupération des arguments de la commande
             String outputFilename = args[1];
             int n = Integer.parseInt(args[2]);
             int k = Integer.parseInt(args[3]);
             double p = Double.parseDouble(args[4]);
             int origine = Integer.parseInt(args[5]);
             int cible = Integer.parseInt(args[6]);
+
+            // Ici le graphe est représenté par une matrice d'adjacence.
             int[][] graph = generateWattzStrogatzGraph(n, k, p);
+
+            // Ecriture des fichiers .txt et .dot
             writeGraphToFileTxt(graph, outputFilename);
             writeGraphToFileDot(graph, outputFilename);
+
+            // Routage glouton
             int[] path = greedyRouting(graph, origine, cible);
             if (path != null) {
                 for (int node : path) {
@@ -37,9 +45,17 @@ public class TP3 {
         }
     }
 
+    /**
+     * Génère un graphe représentant un anneau de Wattz-Strogatz
+     * @param n nombre de sommet
+     * @param k k sommets situés avant et après un sommet n
+     * @param p pourcentage de rebranchement
+     * @return un graphe sous la forme d'une matrice d'adjacence.
+     */
     public static int[][] generateWattzStrogatzGraph(int n, int k, double p) {
         int[][] graph = new int[n][n];
         Random rand = new Random();
+
         // Initialisation du graph
         for (int i = 0; i < n; i++) {
             for (int j = 1; j <= k; j++) {
@@ -48,11 +64,12 @@ public class TP3 {
                 graph[neighbor][i] = 1;
             }
         }
+
         // Rebranchement avec probabilité p
         for (int i = 0; i < n; i++) {
             for (int j = i + 1; j < n; j++) {
                 if (graph[i][j] == 1 && rand.nextDouble() < p) {
-                    // Rebranchement de l'arête ij
+                    // Rebranchement de l'arête i-j
                     List<Integer> candidates = new ArrayList<>();
                     for (int l = 0; l < n; l++) {
                         if (l != i && l != j && graph[i][l] == 0) {
@@ -68,9 +85,17 @@ public class TP3 {
                 }
             }
         }
+
         return graph;
     }
 
+    /**
+     * Effectue un routage glouton
+     * @param graph graphe représenté par une matrice d'adjacence
+     * @param origin sommet d'origine
+     * @param cible sommet de destination
+     * @return null si le routage échoue, un routage possible sinon
+     */
     public static int[] greedyRouting(int[][] graph, int origin, int cible) {
         int n = graph.length;
         int[] coordinates = new int[n];
@@ -101,6 +126,12 @@ public class TP3 {
         return result;
     }
 
+    /**
+     * Donne la liste des voisins d'un sommet
+     * @param graph graphe représenté par une matrice d'adjacence
+     * @param vertex un sommet
+     * @return une liste contenant les voisins d'un sommet
+     */
     public static List<Integer> getNeighbors(int[][] graph, int vertex) {
         List<Integer> neighbors = new ArrayList<>();
         for (int i = 0; i < graph.length; i++) {
@@ -111,7 +142,11 @@ public class TP3 {
         return neighbors;
     }
 
-
+    /**
+     * Ecrit le graphe dans un fichier en suivant le format de Stanford avec extension .txt
+     * @param graph graphe représenté par une matrice d'adjacence
+     * @param filename nom du fichier en sortie
+     */
     public static void writeGraphToFileTxt(int[][] graph, String filename) {
         try {
             FileWriter writer = new FileWriter(filename + ".txt");
@@ -128,6 +163,11 @@ public class TP3 {
         }
     }
 
+    /**
+     * Ecrit le graphe dans un fichier en suivant le format de Stanford avec extension .dot
+     * @param graph graphe représenté par une matrice d'adjacence
+     * @param fileName nom du fichier en sortie
+     */
     public static void writeGraphToFileDot(int[][] graph, String fileName) {
         try {
             FileWriter writer = new FileWriter(fileName+".dot");
